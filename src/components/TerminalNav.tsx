@@ -18,7 +18,7 @@ const TerminalNav: React.FC<TerminalNavProps> = ({ activeSection }) => {
 
   return (
     <nav>
-      <ul className="flex items-center space-x-6 text-sm">
+      <ul className="flex items-center space-x-6 text-base">
         {menuItems.map((item) => {
           const sectionId = item.toLowerCase().replace(/\s+/g, '-');
           const isActive = activeSection === sectionId;
@@ -30,12 +30,11 @@ const TerminalNav: React.FC<TerminalNavProps> = ({ activeSection }) => {
                   e.preventDefault();
                   scrollToSection(sectionId);
                 }}
-                className={`font-mono transition-colors duration-300 relative nav-link group px-2 py-1 overflow-hidden ${
-                  isActive ? 'text-green-400' : 'text-gray-400 hover:text-gray-900'
+                className={`font-mono font-bold transition-colors duration-300 relative nav-link group px-2 py-1 overflow-hidden ${
+                  isActive ? 'text-green-500' : 'text-gray-400 hover:text-green-500'
                 }`}
               >
-                <span className="relative z-10">{item}</span>
-                <span className="absolute inset-0 h-full w-full bg-green-400 transform scale-x-0 origin-left transition-transform duration-300 group-hover:scale-x-100 z-0"></span>
+                <span className="relative z-10 transition-all duration-300 group-hover:brightness-150">{item}</span>
               </a>
             </li>
           );

@@ -22,7 +22,7 @@ const TerminalHeader: React.FC<TerminalHeaderProps> = ({ activeSection }) => {
         <div className="w-3.5 h-3.5 rounded-full bg-yellow-500"></div>
         <div className="w-3.5 h-3.5 rounded-full bg-green-500"></div>
         <div
-          className="text-sm text-gray-400 font-mono ml-2 cursor-pointer transition-colors duration-300 hover:text-green-400"
+          className="text-base text-green-500 font-mono font-bold ml-2 cursor-pointer transition-all duration-300 hover:brightness-150"
           onClick={scrollToTop}
         >
           op@cloud: ~

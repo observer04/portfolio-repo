@@ -62,14 +62,14 @@ export interface Certification {
 
 // Portfolio data based on LinkedIn profile: www.linkedin.com/in/omm-prakash
 export const personalInfo: PersonalInfo = {
-  name: "Omm Prakash",
-  title: "Software Engineer & AI Enthusiast",
+  name: "Omm Prakash Tripathy",
+  title: "AI Engineer & Security Enthusiast",
   location: "India",
   email: "tripathyomm09@gmail.com",
   phone: "+91-XXXXXXXXXX", // Replace with actual phone
   linkedin: "https://www.linkedin.com/in/omm-prakash",
   github: "https://github.com/observer04",
-  summary: "Passionate software engineer with expertise in AI/ML, web development, and cybersecurity. Building innovative solutions that bridge the gap between cutting-edge technology and practical applications.",
+  summary: "Bit of a Generalist, I am an admirer of the current state of AI Applications, especially the state of agents. I am also interested in enumerating systems in CTFs in the field of Cybersecurity. When I'm free, I try to root machines in THM or HTB. Besides this, I dabble a bit in Backend and infra engineering.",
   tryhackme: {
     userId: "4005401",
     badgeUrl: "https://tryhackme.com/api/v2/badges/public-profile?userPublicId=4005401"
