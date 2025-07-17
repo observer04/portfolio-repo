@@ -150,7 +150,7 @@ const Contact = () => {
                     e.preventDefault();
                     const form = e.currentTarget;
                     const data = new FormData(form);
-                    const btn = form.querySelector('button[type="submit"]');
+                    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
                     if (btn) btn.disabled = true;
                     try {
                       await fetch('https://formspree.io/f/xwpqplwo', {
