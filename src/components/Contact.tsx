@@ -6,34 +6,7 @@ import { Mail, Phone, MapPin, Send, CheckCircle, AlertCircle } from 'lucide-reac
 import { personalInfo } from '@/data/portfolio';
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setSubmitStatus('success');
-    setIsSubmitting(false);
-    setFormData({ name: '', email: '', subject: '', message: '' });
-    
-    // Reset status after 3 seconds
-    setTimeout(() => setSubmitStatus('idle'), 3000);
-  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -46,10 +19,11 @@ const Contact = () => {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0.3, y: 50, filter: 'brightness(0.4)' },
     visible: {
       opacity: 1,
       y: 0,
+      filter: 'brightness(1)',
       transition: {
         duration: 0.6,
       },
@@ -57,7 +31,7 @@ const Contact = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-gray-900/30">
+    <section id="contact" className="py-20 bg-black/50">
       <div className="container mx-auto px-4">
         <motion.div
           initial="hidden"
@@ -171,7 +145,25 @@ const Contact = () => {
                   Send Message
                 </h3>
                 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const data = new FormData(form);
+                    const btn = form.querySelector('button[type="submit"]');
+                    if (btn) btn.disabled = true;
+                    try {
+                      await fetch('https://formspree.io/f/xwpqplwo', {
+                        method: 'POST',
+                        body: data,
+                        headers: { Accept: 'application/json' },
+                      });
+                      form.classList.add('submitted');
+                      if (btn) btn.classList.add('submitted');
+                    } catch {}
+                  }}
+                  className="space-y-6"
+                >
                   {/* Name */}
                   <div>
                     <label className="block text-green-500 font-mono mb-2">
@@ -180,11 +172,9 @@ const Contact = () => {
                     <input
                       type="text"
                       name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
                       required
                       className="w-full bg-black/50 border border-green-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors duration-200"
-                      placeholder="Your name"
+                      placeholder="Your Name"
                     />
                   </div>
 
@@ -196,8 +186,6 @@ const Contact = () => {
                     <input
                       type="email"
                       name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
                       required
                       className="w-full bg-black/50 border border-green-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors duration-200"
                       placeholder="your@email.com"
@@ -212,8 +200,6 @@ const Contact = () => {
                     <input
                       type="text"
                       name="subject"
-                      value={formData.subject}
-                      onChange={handleInputChange}
                       required
                       className="w-full bg-black/50 border border-green-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors duration-200"
                       placeholder="Subject"
@@ -227,8 +213,6 @@ const Contact = () => {
                     </label>
                     <textarea
                       name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
                       required
                       rows={6}
                       className="w-full bg-black/50 border border-green-500/30 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:outline-none transition-colors duration-200 resize-none"
@@ -239,46 +223,21 @@ const Contact = () => {
                   {/* Submit Button */}
                   <motion.button
                     type="submit"
-                    disabled={isSubmitting}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-full bg-green-500 text-black px-6 py-3 rounded-lg font-mono font-bold hover:bg-green-400 transition-colors duration-200 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="w-full bg-green-500 text-black px-6 py-3 rounded-lg font-mono font-bold hover:bg-green-400 transition-colors duration-200 flex items-center justify-center space-x-2 submit-btn"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-black"></div>
-                        <span>Sending...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5" />
-                        <span>Send Message</span>
-                      </>
-                    )}
+                    <span className="btn-content flex items-center justify-center space-x-2">
+                      <Send className="w-5 h-5 send-icon" />
+                      <span>Send Message</span>
+                    </span>
+                    <span className="btn-success hidden items-center justify-center space-x-2">
+                      <CheckCircle className="w-5 h-5 text-white" />
+                      <span>Submitted</span>
+                    </span>
                   </motion.button>
 
-                  {/* Status Messages */}
-                  {submitStatus === 'success' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center space-x-2 text-green-500 bg-green-500/20 border border-green-500/30 rounded-lg p-3"
-                    >
-                      <CheckCircle className="w-5 h-5" />
-                      <span>Message sent successfully!</span>
-                    </motion.div>
-                  )}
-
-                  {submitStatus === 'error' && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center space-x-2 text-red-500 bg-red-500/20 border border-red-500/30 rounded-lg p-3"
-                    >
-                      <AlertCircle className="w-5 h-5" />
-                      <span>Failed to send message. Please try again.</span>
-                    </motion.div>
-                  )}
+                  {/* Status handled by button state, no redirect */}
                 </form>
               </div>
             </motion.div>

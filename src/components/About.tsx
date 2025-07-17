@@ -17,10 +17,11 @@ const About = () => {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0.3, y: 50, filter: 'brightness(0.4)' },
     visible: {
       opacity: 1,
       y: 0,
+      filter: 'brightness(1)',
       transition: {
         duration: 0.6,
       },

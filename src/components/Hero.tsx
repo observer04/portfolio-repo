@@ -106,7 +106,7 @@ const Hero = () => {
               className="flex flex-col items-center"
             >
               <Zap className="w-12 h-12 text-orange-400 mb-2" />
-              <span className="text-sm text-gray-400 font-mono">AI/ML</span>
+              <span className="text-sm text-gray-400 font-mono">AI</span>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.1, rotate: 360 }}
