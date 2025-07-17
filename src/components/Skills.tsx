@@ -1,33 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Code, Database, Cloud, Shield, Brain, Wrench } from 'lucide-react';
 import { skills } from '@/data/portfolio';
 
 const Skills = () => {
-  const [currentSkillIndex, setCurrentSkillIndex] = useState(0);
-  const [currentItemIndex, setCurrentItemIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const currentCategory = skills[currentSkillIndex];
-      if (currentItemIndex < currentCategory.items.length - 1) {
-        setCurrentItemIndex(prev => prev + 1);
-      } else {
-        setCurrentItemIndex(0);
-        setCurrentSkillIndex(prev => (prev + 1) % skills.length);
-      }
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [currentSkillIndex, currentItemIndex]);
-
   const categoryIcons = {
+    'Agents': Brain,
     'Programming Languages': Code,
-    'Frontend Development': Code,
-    'Backend Development': Database,
-    'AI/ML & Data Science': Brain,
+    'Frontend': Code,
+    'Backend': Database,
     'Cloud & DevOps': Cloud,
     'Cybersecurity': Shield,
   };
@@ -37,27 +20,16 @@ const Skills = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2,
+        staggerChildren: 0.1,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 50 },
+    hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 0.6,
-      },
-    },
-  };
-
-  const matrixVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
       transition: {
         duration: 0.5,
       },
@@ -84,104 +56,40 @@ const Skills = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Animated Skills Display */}
-            <motion.div variants={itemVariants}>
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-8">
-                <h3 className="text-2xl font-bold text-green-500 mb-6 font-mono">
-                  Live Skills Matrix
-                </h3>
-                
-                {/* Current Category Display */}
-                <div className="mb-8">
-                  <div className="flex items-center space-x-3 mb-4">
-                    {React.createElement(
-                      categoryIcons[skills[currentSkillIndex].category as keyof typeof categoryIcons] || Wrench,
-                      { className: "w-6 h-6 text-orange-400" }
-                    )}
-                    <h4 className="text-lg font-bold text-orange-400 font-mono">
-                      {skills[currentSkillIndex].category}
-                    </h4>
-                  </div>
-                  
-                  {/* Animated Skill Items */}
-                  <div className="space-y-2">
-                    {skills[currentSkillIndex].items.map((item, index) => (
-                      <motion.div
-                        key={`${currentSkillIndex}-${index}`}
-                        initial={{ opacity: 0.3, x: -20 }}
-                        animate={{
-                          opacity: index <= currentItemIndex ? 1 : 0.3,
-                          x: index <= currentItemIndex ? 0 : -20,
-                          scale: index === currentItemIndex ? 1.05 : 1,
-                        }}
-                        transition={{ duration: 0.3 }}
-                        className="flex items-center space-x-3"
-                      >
-                        <div className={`w-2 h-2 rounded-full ${
-                          index === currentItemIndex ? 'bg-green-500' : 'bg-gray-600'
-                        }`} />
-                        <span className={`font-mono ${
-                          index === currentItemIndex ? 'text-green-500' : 'text-gray-400'
-                        }`}>
-                          {item}
-                        </span>
-                      </motion.div>
-                    ))}
-                  </div>
+          {/* Skills Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {skills.map((skillCategory, index) => (
+              <motion.div
+                key={skillCategory.category}
+                variants={itemVariants}
+                className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-6 hover:border-green-500/40 transition-colors duration-300"
+              >
+                <div className="flex items-center space-x-3 mb-4">
+                  {React.createElement(
+                    categoryIcons[skillCategory.category as keyof typeof categoryIcons] || Wrench,
+                    { className: "w-6 h-6 text-orange-400" }
+                  )}
+                  <h3 className="text-lg font-bold text-green-500 font-mono">
+                    {skillCategory.category}
+                  </h3>
                 </div>
-
-                {/* Progress Indicators */}
-                <div className="flex justify-center space-x-2">
-                  {skills.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-3 h-3 rounded-full transition-colors duration-300 ${
-                        index === currentSkillIndex ? 'bg-green-500' : 'bg-gray-600'
-                      }`}
-                    />
+                
+                <div className="flex flex-wrap gap-2">
+                  {skillCategory.items.map((skill, skillIndex) => (
+                    <motion.span
+                      key={skill}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: skillIndex * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                      className="bg-black/50 border border-green-500/30 text-green-500 px-3 py-1 rounded-full text-sm font-mono hover:border-green-500/60 transition-colors duration-200"
+                    >
+                      {skill}
+                    </motion.span>
                   ))}
                 </div>
-              </div>
-            </motion.div>
-
-            {/* Skills Grid */}
-            <motion.div variants={itemVariants}>
-              <div className="space-y-6">
-                {skills.map((skillCategory) => (
-                  <motion.div
-                    key={skillCategory.category}
-                    variants={matrixVariants}
-                    className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-6 hover:border-green-500/40 transition-colors duration-300"
-                  >
-                    <div className="flex items-center space-x-3 mb-4">
-                      {React.createElement(
-                        categoryIcons[skillCategory.category as keyof typeof categoryIcons] || Wrench,
-                        { className: "w-6 h-6 text-orange-400" }
-                      )}
-                      <h3 className="text-lg font-bold text-green-500 font-mono">
-                        {skillCategory.category}
-                      </h3>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {skillCategory.items.map((skill, skillIndex) => (
-                        <motion.span
-                          key={skill}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: skillIndex * 0.05 }}
-                          whileHover={{ scale: 1.05 }}
-                          className="bg-black/50 border border-green-500/30 text-green-500 px-3 py-1 rounded-full text-sm font-mono hover:border-green-500/60 transition-colors duration-200"
-                        >
-                          {skill}
-                        </motion.span>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+              </motion.div>
+            ))}
           </div>
 
           {/* Skills Stats */}

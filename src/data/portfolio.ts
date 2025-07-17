@@ -13,16 +13,6 @@ export interface PersonalInfo {
   };
 }
 
-export interface Experience {
-  id: string;
-  company: string;
-  position: string;
-  duration: string;
-  location: string;
-  description: string[];
-  technologies: string[];
-}
-
 export interface Education {
   id: string;
   institution: string;
@@ -65,7 +55,8 @@ export interface Certification {
   issuer: string;
   date: string;
   credentialId?: string;
-  url?: string;
+  url: string;
+  image: string;
 }
 
 // Portfolio data based on LinkedIn profile: www.linkedin.com/in/omm-prakash
@@ -84,36 +75,6 @@ export const personalInfo: PersonalInfo = {
   }
 };
 
-export const experiences: Experience[] = [
-  {
-    id: "1",
-    company: "Tech Company",
-    position: "Software Engineer",
-    duration: "2023 - Present",
-    location: "Remote",
-    description: [
-      "Developed and deployed AI-powered applications using modern web technologies",
-      "Built scalable web applications with Next.js, React, and Node.js",
-      "Implemented machine learning models for data analysis and automation",
-      "Collaborated with cross-functional teams to deliver high-quality software solutions"
-    ],
-    technologies: ["Next.js", "React", "Node.js", "Python", "TypeScript", "Azure"]
-  },
-  {
-    id: "2",
-    company: "Previous Company",
-    position: "Junior Developer",
-    duration: "2022 - 2023",
-    location: "India",
-    description: [
-      "Assisted in full-stack web development projects",
-      "Gained experience in modern development practices and tools",
-      "Contributed to open-source projects and team collaboration"
-    ],
-    technologies: ["JavaScript", "HTML", "CSS", "Git", "Linux"]
-  }
-];
-
 export const education: Education[] = [
   {
     id: "1",
@@ -128,29 +89,37 @@ export const education: Education[] = [
 
 export const projects: Project[] = [
   {
-    id: "1",
-    name: "Portfolio Website",
-    description: "A modern, responsive portfolio website built with Next.js, featuring space-themed design and interactive animations.",
-    technologies: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
-    githubUrl: "https://github.com/observer04/portfolio-repo",
-    liveUrl: "https://ommprakash.cloud",
-    featured: true
+    id: 'proj-1',
+    name: 'Python Custom Shell',
+    description:
+      "A custom POSIX-compliant shell built in Python. It's a lightweight, educational implementation that explores the core concepts behind how a command-line interface works, including command parsing, process management, I/O redirection, and pipelines.",
+    technologies: ['Python'],
+    githubUrl: 'https://github.com/observer04/shell-python',
+    featured: true,
   },
   {
-    id: "2",
-    name: "E-commerce Platform",
-    description: "Full-stack e-commerce solution with modern UI/UX, payment integration, and admin dashboard.",
-    technologies: ["React", "Node.js", "MongoDB", "Express", "Stripe"],
-    githubUrl: "https://github.com/observer04/ecommerce-project",
-    featured: true
+    id: 'proj-2',
+    name: 'Analytics API',
+    description:
+      'An API development project using FastAPI and TimescaleDB for the analysis of time-series data. It utilizes SQLModel on PostgreSQL.',
+    technologies: ['FastAPI', 'TimescaleDB', 'PostgreSQL', 'SQLModel', 'Python'],
+    githubUrl: 'https://github.com/observer04/analyticsApi',
+    featured: true,
   },
   {
-    id: "3",
-    name: "Task Management App",
-    description: "Collaborative task management application with real-time updates and team collaboration features.",
-    technologies: ["Vue.js", "Firebase", "CSS3", "JavaScript"],
-    githubUrl: "https://github.com/observer04/task-manager",
-    featured: false
+    id: 'proj-3',
+    name: 'AI-Powered Code Review Agent',
+    description: 'An AI agent that reviews code for best practices, potential errors, and optimization opportunities. It provides feedback and suggestions to improve code quality and performance.',
+    technologies: ['Python', 'Machine Learning', 'Flask', 'Docker'],
+    githubUrl: 'https://github.com/observer04/ai-code-review',
+    featured: true,
+  },
+  {
+    id: 'proj-4',
+    name: 'Coming Soon',
+    description: 'An exciting new project is currently in development. Stay tuned for updates on this innovative project that will showcase cutting-edge technology and creative solutions.',
+    technologies: ['AI/ML', 'Python', 'Cloud Computing'],
+    featured: false,
   }
 ];
 
@@ -196,53 +165,85 @@ export const aiAgents: AIAgent[] = [
   }
 ];
 
-export const skills: Skill[] = [
+export const skills = [
   {
-    category: "Programming Languages",
-    items: ["JavaScript", "TypeScript", "Python", "Java", "C++", "Go"]
+    category: 'Agents',
+    items: ['OpenAI SDK', 'AutoGen', 'smol-agent', 'LangChain', 'LangGraph'],
   },
   {
-    category: "Frontend Development",
-    items: ["React", "Next.js", "Vue.js", "HTML5", "CSS3", "Tailwind CSS"]
+    category: 'Cloud & DevOps',
+    items: ['Azure', 'Docker', 'Git'],
   },
   {
-    category: "Backend Development",
-    items: ["Node.js", "Express", "Django", "Flask", "PostgreSQL", "MongoDB"]
+    category: 'Cybersecurity',
+    items: [
+      'Penetration Testing',
+      'Vulnerability Assessment',
+      'Nmap',
+      'Wireshark',
+      'Metasploit',
+      'Burp Suite',
+      'OWASP Top 10',
+    ],
   },
   {
-    category: "AI/ML & Data Science",
-    items: ["TensorFlow", "PyTorch", "Scikit-learn", "Pandas", "NumPy", "Jupyter"]
+    category: 'Programming Languages',
+    items: ['C', 'C++', 'Python', 'JavaScript'],
   },
   {
-    category: "Cloud & DevOps",
-    items: ["AWS", "Azure", "Docker", "Kubernetes", "Jenkins", "Git"]
+    category: 'Frontend',
+    items: ['HTML5', 'CSS3'],
   },
   {
-    category: "Cybersecurity",
-    items: ["Penetration Testing", "Network Security", "OWASP", "Security Auditing"]
-  }
+    category: 'Backend',
+    items: ['FastAPI', 'PostgreSQL', 'MongoDB'],
+  },
 ];
 
 export const certifications: Certification[] = [
   {
-    id: "1",
-    name: "AWS Certified Developer",
-    issuer: "Amazon Web Services",
-    date: "2023",
-    credentialId: "AWS-DEV-2023-001"
+    id: "cert-1",
+    name: "Microsoft Certified: Azure AI Engineer Associate",
+    issuer: "Microsoft",
+    date: "2025-06-21",
+    credentialId: "MS-AZURE-AI-2025",
+    url: "https://learn.microsoft.com/api/credentials/share/en-us/OmmTripathy-7760/DD4F9AA885B4A3C9?sharingId",
+    image: "/certs/azureaiengineerassociate.png"
   },
   {
-    id: "2",
-    name: "Google Cloud Professional",
-    issuer: "Google Cloud",
-    date: "2023",
-    credentialId: "GCP-PROF-2023-001"
+    id: "cert-2",
+    name: "Google Cybersecurity Specialization",
+    issuer: "Google",
+    date: "2025-03-10",
+    credentialId: "GOOGLE-CYBER-2025",
+    url: "https://www.coursera.org/account/accomplishments/specialization/69378FMHG2TG",
+    image: "/certs/googlecybersecurity.jpeg"
   },
   {
-    id: "3",
-    name: "Certified Ethical Hacker",
-    issuer: "EC-Council",
-    date: "2022",
-    credentialId: "CEH-2022-001"
+    id: "cert-3",
+    name: "Machine Learning Specialization",
+    issuer: "Stanford Online",
+    date: "2024-10-27",
+    credentialId: "ML-SPEC-2024",
+    url: "https://www.coursera.org/account/accomplishments/specialization/2V36OORW5D6E",
+    image: "/certs/mlspecialization.jpeg"
+  },
+  {
+    id: "cert-4",
+    name: "Cyber Security 101",
+    issuer: "TryHackMe",
+    date: "2025-02-10",
+    credentialId: "THM-1Y4CIFR1S8",
+    url: "https://tryhackme-certificates.s3-eu-west-1.amazonaws.com/THM-1Y4CIFR1S8.pdf",
+    image: "/certs/cybersecurity101.png"
+  },
+  {
+    id: "cert-5",
+    name: "Ethical Hacker",
+    issuer: "Udacity",
+    date: "2025-07-03",
+    credentialId: "ea9ddb6e-f938-11ef-a68f-cf225e06a3c8",
+    url: "https://www.udacity.com/certificate/e/ea9ddb6e-f938-11ef-a68f-cf225e06a3c8",
+    image: "/certs/udacity.png"
   }
 ];

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Mail, Calendar, User } from 'lucide-react';
-import { personalInfo, education, certifications } from '@/data/portfolio';
+import { MapPin, Mail, User, Calendar } from 'lucide-react';
+import { personalInfo, education } from '@/data/portfolio';
 
 const About = () => {
   const containerVariants = {
@@ -28,7 +28,7 @@ const About = () => {
   };
 
   return (
-    <section id="about" className="py-20 bg-black/50">
+    <section id="whoami" className="py-20 bg-black/50">
       <div className="container mx-auto px-4">
         <motion.div
           initial="hidden"
@@ -40,7 +40,7 @@ const About = () => {
           {/* Section Header */}
           <motion.div variants={itemVariants} className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-green-500 mb-4 font-mono">
-              {">"} About Me
+              {">"} whoami
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Passionate about building innovative solutions that make a difference
@@ -50,7 +50,7 @@ const About = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Personal Information */}
             <motion.div variants={itemVariants}>
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-8">
+              <div className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-8 h-full">
                 <h3 className="text-2xl font-bold text-green-500 mb-6 font-mono flex items-center">
                   <User className="w-6 h-6 mr-2" />
                   Personal Info
@@ -105,10 +105,9 @@ const About = () => {
               </div>
             </motion.div>
 
-            {/* Education & Certifications */}
-            <motion.div variants={itemVariants} className="space-y-8">
-              {/* Education */}
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-8">
+            {/* Education */}
+            <motion.div variants={itemVariants}>
+              <div className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-8 h-full">
                 <h3 className="text-2xl font-bold text-green-500 mb-6 font-mono flex items-center">
                   <Calendar className="w-6 h-6 mr-2" />
                   Education
@@ -139,38 +138,6 @@ const About = () => {
                     </div>
                   </motion.div>
                 ))}
-              </div>
-
-              {/* Certifications */}
-              <div className="bg-gray-900/50 backdrop-blur-sm border border-green-500/20 rounded-lg p-8">
-                <h3 className="text-2xl font-bold text-green-500 mb-6 font-mono">
-                  Certifications
-                </h3>
-                
-                <div className="grid grid-cols-1 gap-4">
-                  {certifications.map((cert, index) => (
-                    <motion.div
-                      key={cert.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-black/30 rounded-lg p-4 border border-green-500/10 hover:border-green-500/30 transition-colors duration-200"
-                    >
-                      <h4 className="text-lg font-bold text-orange-400 mb-2">
-                        {cert.name}
-                      </h4>
-                      <p className="text-green-500 font-mono text-sm">
-                        {cert.issuer}
-                      </p>
-                      <p className="text-gray-400 text-sm">
-                        {cert.date}
-                        {cert.credentialId && (
-                          <span className="ml-2">• ID: {cert.credentialId}</span>
-                        )}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
               </div>
             </motion.div>
           </div>
