@@ -21,6 +21,7 @@ export interface Education {
   duration: string;
   location: string;
   description?: string;
+  notesUrl?: string;
 }
 
 export interface Project {
@@ -64,7 +65,7 @@ export const personalInfo: PersonalInfo = {
   name: "Omm Prakash",
   title: "Software Engineer & AI Enthusiast",
   location: "India",
-  email: "contact@ommprakash.cloud",
+  email: "tripathyomm09@gmail.com",
   phone: "+91-XXXXXXXXXX", // Replace with actual phone
   linkedin: "https://www.linkedin.com/in/omm-prakash",
   github: "https://github.com/observer04",
@@ -78,12 +79,31 @@ export const personalInfo: PersonalInfo = {
 export const education: Education[] = [
   {
     id: "1",
-    institution: "Technical University",
+    institution: "IIIT Bhubaneswar",
     degree: "Bachelor of Technology",
     field: "Computer Science and Engineering",
-    duration: "2019 - 2023",
-    location: "India",
+    duration: "2023 - 2027",
+    location: "Bhubaneswar, India",
     description: "Focused on software engineering, data structures, algorithms, and computer systems."
+  },
+  {
+    id: "2",
+    institution: "TryHackMe.com",
+    degree: "Cybersecurity Training",
+    field: "Ethical Hacking & Penetration Testing",
+    duration: "2025 - Current",
+    location: "Online",
+    description: "Learning and practicing cybersecurity skills through hands-on labs and challenges."
+  },
+  {
+    id: "3",
+    institution: "HTB Academy",
+    degree: "Cybersecurity Training",
+    field: "Penetration Testing & Bug Bounty",
+    duration: "2025 - Current",
+    location: "Online",
+    description: "Learning and practicing cybersecurity skills through hands-on labs and challenges. I pawn machines and learn on the CPTS path pentesting tasks.",
+    notesUrl: "https://veil-condition-db3.notion.site/Labs-1f29e748e187805ebcffde6c77291aa6"
   }
 ];
 

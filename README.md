@@ -211,7 +211,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📞 Contact
 
-- **Email**: contact@ommprakash.cloud
+- **Email**: tripathyomm09@gmail.com
 - **LinkedIn**: [linkedin.com/in/omm-prakash](https://linkedin.com/in/omm-prakash)
 - **GitHub**: [github.com/observer04](https://github.com/observer04)
 

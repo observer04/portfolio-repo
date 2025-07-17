@@ -97,7 +97,7 @@ const Skills = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8"
           >
             <div className="text-center">
               <div className="text-4xl font-bold text-green-500 mb-2">
@@ -110,12 +110,6 @@ const Skills = () => {
                 {skills.length}
               </div>
               <div className="text-gray-300 font-mono">Categories</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold text-green-500 mb-2">
-                3+
-              </div>
-              <div className="text-gray-300 font-mono">Years Experience</div>
             </div>
           </motion.div>
 
@@ -135,7 +129,7 @@ const Skills = () => {
               <span className="text-gray-400">$</span> whoami --skills
             </div>
             <div className="text-gray-400 mt-1">
-              Full-Stack Developer | AI Enthusiast | Security Researcher
+              AI Engineer | Software Developer | CTF Player
             </div>
             <div className="text-green-500 mt-2">
               <span className="text-gray-400">$</span> echo &quot;Always learning, always growing&quot;
