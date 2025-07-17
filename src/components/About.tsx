@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Mail, User, Calendar } from 'lucide-react';
+import { MapPin, Mail, User, Calendar, ExternalLink } from 'lucide-react';
 import { personalInfo, education } from '@/data/portfolio';
 
 const About = () => {
@@ -134,6 +134,19 @@ const About = () => {
                         <p className="text-gray-300 text-sm mt-2">
                           {edu.description}
                         </p>
+                      )}
+                      {edu.notesUrl && (
+                        <motion.a
+                          href={edu.notesUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="inline-flex items-center space-x-2 bg-green-500/20 border border-green-500/40 text-green-500 px-4 py-2 rounded-lg text-sm font-mono hover:bg-green-500/30 hover:border-green-500/60 transition-colors duration-200 mt-3 w-fit"
+                        >
+                          <span>My Notes & Writeups</span>
+                          <ExternalLink className="w-4 h-4" />
+                        </motion.a>
                       )}
                     </div>
                   </motion.div>

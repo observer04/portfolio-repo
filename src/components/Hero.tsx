@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, Code, Zap, Shield } from 'lucide-react';
+import { Code, Zap, Shield } from 'lucide-react';
 import { personalInfo } from '@/data/portfolio';
 
 const Hero = () => {
@@ -24,10 +24,6 @@ const Hero = () => {
 
     return () => clearInterval(timer);
   }, [fullText]);
-
-  const scrollToAbout = () => {
-    document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   return (
     <section id="home" className="min-h-screen flex items-center justify-center space-bg relative overflow-hidden">
@@ -129,14 +125,6 @@ const Hero = () => {
             transition={{ delay: 1.2 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={scrollToAbout}
-              className="bg-green-500 text-black px-8 py-3 rounded-lg font-mono font-bold hover:bg-green-400 transition-colors duration-200"
-            >
-              Explore Portfolio
-            </motion.button>
             <motion.a
               href={personalInfo.linkedin}
               target="_blank"
@@ -148,23 +136,6 @@ const Hero = () => {
               Connect with Me
             </motion.a>
           </motion.div>
-        </motion.div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.4 }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <motion.button
-            onClick={scrollToAbout}
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-            className="text-green-500 hover:text-orange-400 transition-colors duration-200"
-          >
-            <ChevronDown className="w-8 h-8" />
-          </motion.button>
         </motion.div>
       </div>
     </section>
