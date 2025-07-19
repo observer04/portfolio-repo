@@ -192,7 +192,7 @@ export const skills = [
   },
   {
     category: 'Cloud & DevOps',
-    items: ['Azure', 'Docker', 'Git'],
+    items: ['Azure', 'Docker', 'Git', 'Linux Sys-Admin'],
   },
   {
     category: 'Cybersecurity',
