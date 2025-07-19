@@ -128,14 +128,6 @@ export const projects: Project[] = [
   },
   {
     id: 'proj-3',
-    name: 'AI-Powered Code Review Agent',
-    description: 'An AI agent that reviews code for best practices, potential errors, and optimization opportunities. It provides feedback and suggestions to improve code quality and performance.',
-    technologies: ['Python', 'Machine Learning', 'Flask', 'Docker'],
-    githubUrl: 'https://github.com/observer04/ai-code-review',
-    featured: true,
-  },
-  {
-    id: 'proj-4',
     name: 'Coming Soon',
     description: 'An exciting new project is currently in development. Stay tuned for updates on this innovative project that will showcase cutting-edge technology and creative solutions.',
     technologies: ['AI/ML', 'Python', 'Cloud Computing'],
@@ -173,7 +165,7 @@ export const aiAgents: AIAgent[] = [
   {
     id: "3",
     name: "Coming Soon",
-    description: "An exciting new AI agent is currently in development. Stay tuned for updates on this innovative project that will showcase cutting-edge AI capabilities.",
+    description: "An exciting new AI agent is currently in development. ",
     url: "#",
     technologies: ["AI/ML", "Python", "Cloud Computing"],
     features: [
@@ -198,12 +190,12 @@ export const skills = [
     category: 'Cybersecurity',
     items: [
       'Penetration Testing',
-      'Vulnerability Assessment',
+      'OWASP Top 10',
       'Nmap',
       'Wireshark',
       'Metasploit',
       'Burp Suite',
-      'OWASP Top 10',
+      
     ],
   },
   {
@@ -216,7 +208,7 @@ export const skills = [
   },
   {
     category: 'Backend',
-    items: ['FastAPI', 'PostgreSQL', 'MongoDB'],
+    items: ['FastAPI', 'PostgreSQL', 'Redis'],
   },
 ];
 
