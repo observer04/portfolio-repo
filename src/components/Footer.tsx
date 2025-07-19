@@ -86,7 +86,7 @@ const Footer = () => {
               </motion.a>
             </div>
             <div className="text-gray-400 text-sm">
-              <p>Built with Next.js, TypeScript & Tailwind CSS</p>
+              <p>Built with Next.js, TypeScript, Tailwind CSS & Github Copilot</p>
               <p>Deployed on Azure Static Web Apps</p>
             </div>
           </div>
