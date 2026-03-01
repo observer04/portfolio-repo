@@ -4,95 +4,292 @@ import React, { useRef, useMemo, useCallback } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// ─── Shaders ────────────────────────────────────────────────────────
+// ─── Disk tilt applied to all disk-related elements ─────────────────
+const DISK_TILT: [number, number, number] = [-Math.PI * 0.38, 0, 0.2];
 
-const diskVertexShader = `
-  varying vec2 vUv;
-  varying vec3 vPosition;
-  void main() {
-    vUv = uv;
-    vPosition = position;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+// ─── Hubble False-Color Palette ─────────────────────────────────────
+// Inner → outer: white-hot → magenta/pink → cyan/teal → gold/amber → deep violet
+function falseColor(t: number): [number, number, number] {
+  // t: 0 = innermost, 1 = outermost
+  if (t < 0.15) {
+    // White-hot core
+    const s = t / 0.15;
+    return [
+      1.0 - s * 0.05,
+      0.95 - s * 0.3,
+      1.0 - s * 0.4,
+    ];
+  } else if (t < 0.35) {
+    // Hot magenta / pink
+    const s = (t - 0.15) / 0.2;
+    return [
+      0.95 - s * 0.3,
+      0.15 + s * 0.45,
+      0.6 + s * 0.3,
+    ];
+  } else if (t < 0.6) {
+    // Cyan / teal
+    const s = (t - 0.35) / 0.25;
+    return [
+      0.15 + s * 0.15,
+      0.6 + s * 0.15,
+      0.9 - s * 0.1,
+    ];
+  } else if (t < 0.8) {
+    // Warm gold / amber
+    const s = (t - 0.6) / 0.2;
+    return [
+      0.8 + s * 0.2,
+      0.55 - s * 0.15,
+      0.15 - s * 0.1,
+    ];
+  } else {
+    // Deep violet / cool fade
+    const s = (t - 0.8) / 0.2;
+    return [
+      0.5 - s * 0.3,
+      0.15 - s * 0.1,
+      0.35 + s * 0.25,
+    ];
   }
-`;
+}
 
-const diskFragmentShader = `
-  uniform float uTime;
-  varying vec2 vUv;
-  varying vec3 vPosition;
+// ─── Gaussian random helper ─────────────────────────────────────────
+function gaussRandom(): number {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
 
-  // Simplex-ish noise for turbulence
-  vec3 mod289(vec3 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
-  vec2 mod289(vec2 x) { return x - floor(x * (1.0/289.0)) * 289.0; }
-  vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+// ─── Star Field ─────────────────────────────────────────────────────
 
-  float snoise(vec2 v) {
-    const vec4 C = vec4(0.211324865405187, 0.366025403784439,
-                       -0.577350269189626, 0.024390243902439);
-    vec2 i  = floor(v + dot(v, C.yy));
-    vec2 x0 = v - i + dot(i, C.xx);
-    vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-    vec4 x12 = x0.xyxy + C.xxzz;
-    x12.xy -= i1;
-    i = mod289(i);
-    vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
-    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-    m = m*m; m = m*m;
-    vec3 x = 2.0 * fract(p * C.www) - 1.0;
-    vec3 h = abs(x) - 0.5;
-    vec3 ox = floor(x + 0.5);
-    vec3 a0 = x - ox;
-    m *= 1.79284291400159 - 0.85373472095314 * (a0*a0 + h*h);
-    vec3 g;
-    g.x = a0.x * x0.x + h.x * x0.y;
-    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-    return 130.0 * dot(m, g);
-  }
+function StarField({ count = 4000 }: { count?: number }) {
+  const meshRef = useRef<THREE.Points>(null);
 
-  void main() {
-    float dist = length(vPosition.xz);
-    float angle = atan(vPosition.z, vPosition.x);
+  const { positions, colors } = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
 
-    // Radial falloff — bright core, fading edges
-    float innerEdge = smoothstep(0.8, 1.5, dist);
-    float outerEdge = smoothstep(5.0, 3.0, dist);
-    float radialMask = innerEdge * outerEdge;
+    for (let i = 0; i < count; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 18 + Math.random() * 40;
 
-    // Swirling turbulence
-    float spiral = angle * 3.0 - dist * 2.0 + uTime * 0.8;
-    float turb = snoise(vec2(spiral, dist * 3.0 - uTime * 0.3)) * 0.5 + 0.5;
-    float turb2 = snoise(vec2(spiral * 2.0 + 1.7, dist * 5.0 - uTime * 0.5)) * 0.5 + 0.5;
+      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      pos[i * 3 + 2] = r * Math.cos(phi);
 
-    // Color: hot inner (white-blue) to cool outer (orange-red)
-    vec3 hotColor = vec3(0.9, 0.95, 1.0);    // white-blue
-    vec3 midColor = vec3(1.0, 0.6, 0.15);     // orange
-    vec3 coolColor = vec3(0.8, 0.1, 0.05);    // deep red
-    vec3 accentColor = vec3(0.0, 1.0, 0.4);   // matrix green accent
+      const temp = Math.random();
+      if (temp < 0.12) {
+        col[i * 3] = 0.7; col[i * 3 + 1] = 0.85; col[i * 3 + 2] = 1.0;
+      } else if (temp < 0.2) {
+        col[i * 3] = 1.0; col[i * 3 + 1] = 0.7; col[i * 3 + 2] = 0.4;
+      } else {
+        const w = 0.75 + Math.random() * 0.25;
+        col[i * 3] = w; col[i * 3 + 1] = w; col[i * 3 + 2] = w;
+      }
+    }
+    return { positions: pos, colors: col };
+  }, [count]);
 
-    float t = smoothstep(1.0, 4.5, dist);
-    vec3 baseColor = mix(hotColor, midColor, t);
-    baseColor = mix(baseColor, coolColor, smoothstep(3.0, 5.0, dist));
+  useFrame((_, delta) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.y += delta * 0.004;
+    }
+  });
 
-    // Add subtle green accent in mid-range
-    baseColor = mix(baseColor, accentColor, 0.06 * turb2 * smoothstep(2.0, 3.0, dist) * smoothstep(4.5, 3.5, dist));
+  return (
+    <points ref={meshRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.07}
+        vertexColors
+        transparent
+        opacity={0.85}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
 
-    // Brightness modulation
-    float brightness = radialMask * (0.6 + 0.4 * turb) * (0.8 + 0.2 * turb2);
+// ─── Volumetric Accretion Disk (Particle Torus) ─────────────────────
+// Each particle orbits at a Keplerian speed, distributed in a thick
+// torus with gaussian vertical spread. This creates genuine 3D depth.
 
-    // Inner glow intensification
-    float innerGlow = smoothstep(1.5, 0.8, dist) * 1.5;
-    brightness += innerGlow;
+function VolumetricDisk({ count = 10000 }: { count?: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+  const timeRef = useRef(0);
 
-    // Relativistic beaming (one side brighter — Doppler effect)
-    float doppler = 0.7 + 0.3 * sin(angle + uTime * 0.3);
-    brightness *= doppler;
+  // Per-particle data stored outside the position buffer
+  const particleData = useMemo(() => {
+    const radii = new Float32Array(count);
+    const angles = new Float32Array(count);
+    const heights = new Float32Array(count);
+    const speeds = new Float32Array(count);
+    const col = new Float32Array(count * 3);
+    const siz = new Float32Array(count);
+    const pos = new Float32Array(count * 3);
 
-    float alpha = radialMask * (0.7 + 0.3 * turb);
-    alpha *= doppler;
+    const innerR = 0.8;
+    const outerR = 6.0;
 
-    gl_FragColor = vec4(baseColor * brightness, alpha);
-  }
-`;
+    for (let i = 0; i < count; i++) {
+      // Bias distribution: more particles near inner region (power law)
+      const u = Math.random();
+      const r = innerR + (outerR - innerR) * Math.pow(u, 0.6);
+      radii[i] = r;
+
+      // Random initial angle
+      angles[i] = Math.random() * Math.PI * 2;
+
+      // Gaussian vertical spread — thinner near center, thicker further out
+      const verticalScale = 0.04 + (r / outerR) * 0.35;
+      heights[i] = gaussRandom() * verticalScale;
+
+      // Keplerian orbital speed: v ∝ r^(-1.5) — inner orbits much faster
+      speeds[i] = 1.8 / Math.pow(r, 1.5);
+
+      // False color based on radial position
+      const t = (r - innerR) / (outerR - innerR);
+      const [cr, cg, cb] = falseColor(t);
+
+      // Add per-particle brightness variation for texture
+      const brightnessJitter = 0.6 + Math.random() * 0.4;
+      col[i * 3] = cr * brightnessJitter;
+      col[i * 3 + 1] = cg * brightnessJitter;
+      col[i * 3 + 2] = cb * brightnessJitter;
+
+      // Size: inner particles slightly smaller and denser, outer ones larger and diffuse
+      siz[i] = 0.02 + t * 0.06 + Math.random() * 0.03;
+
+      // Initial positions
+      pos[i * 3] = Math.cos(angles[i]) * r;
+      pos[i * 3 + 1] = heights[i];
+      pos[i * 3 + 2] = Math.sin(angles[i]) * r;
+    }
+
+    return { radii, angles, heights, speeds, colors: col, sizes: siz, positions: pos };
+  }, [count]);
+
+  useFrame((_, delta) => {
+    if (!pointsRef.current) return;
+    timeRef.current += delta;
+
+    const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+
+    for (let i = 0; i < count; i++) {
+      // Advance angle by Keplerian speed
+      particleData.angles[i] += particleData.speeds[i] * delta;
+      const a = particleData.angles[i];
+      const r = particleData.radii[i];
+
+      arr[i * 3] = Math.cos(a) * r;
+      arr[i * 3 + 1] = particleData.heights[i];
+      arr[i * 3 + 2] = Math.sin(a) * r;
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={pointsRef} rotation={DISK_TILT}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[particleData.positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[particleData.colors, 3]} />
+        <bufferAttribute attach="attributes-size" args={[particleData.sizes, 1]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.06}
+        vertexColors
+        transparent
+        opacity={0.7}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// ─── Bright Inner Glow Layer ────────────────────────────────────────
+// Dense, bright, fast-orbiting particles close to the event horizon
+
+function InnerGlow({ count = 3000 }: { count?: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+  const timeRef = useRef(0);
+
+  const particleData = useMemo(() => {
+    const radii = new Float32Array(count);
+    const angles = new Float32Array(count);
+    const heights = new Float32Array(count);
+    const speeds = new Float32Array(count);
+    const col = new Float32Array(count * 3);
+    const pos = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+      const r = 0.6 + Math.random() * 1.5;
+      radii[i] = r;
+      angles[i] = Math.random() * Math.PI * 2;
+      heights[i] = gaussRandom() * 0.03;
+      speeds[i] = 2.5 / Math.pow(r, 1.5);
+
+      // Extremely hot: white to magenta
+      const t = Math.random();
+      col[i * 3] = 0.9 + t * 0.1;
+      col[i * 3 + 1] = 0.4 + t * 0.5;
+      col[i * 3 + 2] = 0.8 + t * 0.2;
+
+      pos[i * 3] = Math.cos(angles[i]) * r;
+      pos[i * 3 + 1] = heights[i];
+      pos[i * 3 + 2] = Math.sin(angles[i]) * r;
+    }
+    return { radii, angles, heights, speeds, colors: col, positions: pos };
+  }, [count]);
+
+  useFrame((_, delta) => {
+    if (!pointsRef.current) return;
+    timeRef.current += delta;
+    const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+
+    for (let i = 0; i < count; i++) {
+      particleData.angles[i] += particleData.speeds[i] * delta;
+      const a = particleData.angles[i];
+      const r = particleData.radii[i];
+      arr[i * 3] = Math.cos(a) * r;
+      arr[i * 3 + 1] = particleData.heights[i];
+      arr[i * 3 + 2] = Math.sin(a) * r;
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={pointsRef} rotation={DISK_TILT}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[particleData.positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[particleData.colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.04}
+        vertexColors
+        transparent
+        opacity={0.9}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// ─── Central Glow (Photon Ring + Event Horizon) ─────────────────────
+// Shader-based billboard quad for the glow around the black hole center
 
 const glowVertexShader = `
   varying vec2 vUv;
@@ -110,154 +307,34 @@ const glowFragmentShader = `
     vec2 center = vec2(0.5);
     float dist = length(vUv - center) * 2.0;
 
-    // Black hole shadow
-    float shadow = smoothstep(0.05, 0.12, dist);
+    // Event horizon shadow
+    float shadow = smoothstep(0.04, 0.14, dist);
 
-    // Photon ring — very tight bright ring
-    float photonRing = exp(-pow((dist - 0.13) * 40.0, 2.0)) * 2.0;
+    // Photon ring — tight bright ring just outside horizon
+    float photonRing = exp(-pow((dist - 0.14) * 35.0, 2.0)) * 2.5;
 
     // Gravitational lensing glow
-    float lensGlow = exp(-dist * 3.0) * 0.6;
-    float outerHalo = exp(-pow(dist - 0.3, 2.0) * 8.0) * 0.15;
+    float lensGlow = exp(-dist * 4.0) * 0.5;
+    float outerHalo = exp(-pow(dist - 0.25, 2.0) * 12.0) * 0.2;
 
-    // Pulsation
-    float pulse = 1.0 + 0.05 * sin(uTime * 2.0);
-
+    float pulse = 1.0 + 0.04 * sin(uTime * 1.8);
     float totalGlow = (photonRing + lensGlow + outerHalo) * shadow * pulse;
 
+    // False-color: hot magenta core → cyan ring → amber halo
     vec3 color = mix(
-      vec3(0.7, 0.85, 1.0),   // blue-white core
-      vec3(1.0, 0.5, 0.1),     // orange rim
-      smoothstep(0.1, 0.35, dist)
+      vec3(1.0, 0.6, 0.9),    // magenta-white
+      vec3(0.3, 0.9, 1.0),    // cyan
+      smoothstep(0.08, 0.25, dist)
     );
+    color = mix(color, vec3(1.0, 0.75, 0.2), smoothstep(0.2, 0.4, dist));
 
-    gl_FragColor = vec4(color * totalGlow, totalGlow * 0.9);
+    gl_FragColor = vec4(color * totalGlow, totalGlow * 0.85);
   }
 `;
 
-// ─── Star Field ─────────────────────────────────────────────────────
-
-function StarField({ count = 3000 }: { count?: number }) {
-  const meshRef = useRef<THREE.Points>(null);
-
-  const { positions, colors, sizes } = useMemo(() => {
-    const pos = new Float32Array(count * 3);
-    const col = new Float32Array(count * 3);
-    const siz = new Float32Array(count);
-
-    for (let i = 0; i < count; i++) {
-      // Distribute on a sphere shell
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos(2 * Math.random() - 1);
-      const r = 15 + Math.random() * 35;
-
-      pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      pos[i * 3 + 2] = r * Math.cos(phi);
-
-      // Color variation: mostly white with some blue and warm tints
-      const temp = Math.random();
-      if (temp < 0.15) {
-        // Blue-white hot stars
-        col[i * 3] = 0.7 + Math.random() * 0.3;
-        col[i * 3 + 1] = 0.8 + Math.random() * 0.2;
-        col[i * 3 + 2] = 1.0;
-      } else if (temp < 0.25) {
-        // Warm orange/red
-        col[i * 3] = 1.0;
-        col[i * 3 + 1] = 0.6 + Math.random() * 0.3;
-        col[i * 3 + 2] = 0.3 + Math.random() * 0.3;
-      } else {
-        // White
-        const w = 0.8 + Math.random() * 0.2;
-        col[i * 3] = w;
-        col[i * 3 + 1] = w;
-        col[i * 3 + 2] = w;
-      }
-
-      siz[i] = 0.02 + Math.random() * 0.08;
-    }
-
-    return { positions: pos, colors: col, sizes: siz };
-  }, [count]);
-
-  useFrame((_, delta) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.005;
-      meshRef.current.rotation.x += delta * 0.002;
-    }
-  });
-
-  return (
-    <points ref={meshRef}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
-        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.08}
-        vertexColors
-        transparent
-        opacity={0.9}
-        sizeAttenuation
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-      />
-    </points>
-  );
-}
-
-// ─── Accretion Disk Mesh ────────────────────────────────────────────
-
-function Disk() {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-    }),
-    []
-  );
-
-  useFrame((_, delta) => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value += delta;
-    }
-    if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.1;
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} rotation={[-Math.PI * 0.42, 0, 0.15]}>
-      <ringGeometry args={[0.8, 5, 128, 64]} />
-      <shaderMaterial
-        ref={materialRef}
-        vertexShader={diskVertexShader}
-        fragmentShader={diskFragmentShader}
-        uniforms={uniforms}
-        transparent
-        side={THREE.DoubleSide}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-      />
-    </mesh>
-  );
-}
-
-// ─── Central Glow (Photon Sphere + Lensing) ─────────────────────────
-
 function CentralGlow() {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
-
-  const uniforms = useMemo(
-    () => ({
-      uTime: { value: 0 },
-    }),
-    []
-  );
+  const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
 
   useFrame((_, delta) => {
     if (materialRef.current) {
@@ -266,8 +343,8 @@ function CentralGlow() {
   });
 
   return (
-    <mesh rotation={[-Math.PI * 0.42, 0, 0.15]}>
-      <planeGeometry args={[4, 4]} />
+    <mesh rotation={DISK_TILT}>
+      <planeGeometry args={[5, 5]} />
       <shaderMaterial
         ref={materialRef}
         vertexShader={glowVertexShader}
@@ -281,52 +358,124 @@ function CentralGlow() {
   );
 }
 
-// ─── Particle Jets ──────────────────────────────────────────────────
+// ─── Diffuse Halo Cloud ─────────────────────────────────────────────
+// Large, soft, slowly-orbiting particles forming a diffuse envelope
+// around the disk, giving it a volumetric "cloud" appearance
 
-function ParticleJets({ count = 600 }: { count?: number }) {
+function DiffuseHalo({ count = 2000 }: { count?: number }) {
   const pointsRef = useRef<THREE.Points>(null);
-  const timeRef = useRef(0);
 
-  const { positions, basePositions, velocities } = useMemo(() => {
+  const { positions, colors } = useMemo(() => {
     const pos = new Float32Array(count * 3);
-    const base = new Float32Array(count * 3);
-    const vel = new Float32Array(count);
+    const col = new Float32Array(count * 3);
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const spread = Math.random() * 0.3;
+      // Spread from inner to far outer
+      const r = 1.5 + Math.random() * 9;
+      // Much thicker vertical spread — gives 3D cloud feel
+      const ySpread = gaussRandom() * (0.3 + (r / 10) * 0.8);
+
+      pos[i * 3] = Math.cos(angle) * r;
+      pos[i * 3 + 1] = ySpread;
+      pos[i * 3 + 2] = Math.sin(angle) * r;
+
+      // Soft false-color nebula tones
+      const t = r / 10;
+      const palette = Math.random();
+      if (palette < 0.35) {
+        // Deep violet / purple
+        col[i * 3] = 0.4 + t * 0.2;
+        col[i * 3 + 1] = 0.1 + t * 0.15;
+        col[i * 3 + 2] = 0.6 + t * 0.2;
+      } else if (palette < 0.65) {
+        // Teal / cyan
+        col[i * 3] = 0.05 + t * 0.1;
+        col[i * 3 + 1] = 0.3 + t * 0.3;
+        col[i * 3 + 2] = 0.5 + t * 0.3;
+      } else {
+        // Warm amber haze
+        col[i * 3] = 0.6 + t * 0.3;
+        col[i * 3 + 1] = 0.3 + t * 0.15;
+        col[i * 3 + 2] = 0.05 + t * 0.1;
+      }
+    }
+    return { positions: pos, colors: col };
+  }, [count]);
+
+  useFrame((_, delta) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.012;
+    }
+  });
+
+  return (
+    <points ref={pointsRef} rotation={DISK_TILT}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.18}
+        vertexColors
+        transparent
+        opacity={0.12}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// ─── Particle Jets ──────────────────────────────────────────────────
+
+function ParticleJets({ count = 500 }: { count?: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const { positions, basePositions, velocities, colors } = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const base = new Float32Array(count * 3);
+    const vel = new Float32Array(count);
+    const col = new Float32Array(count * 3);
+
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const spread = Math.random() * 0.25;
       const height = (Math.random() - 0.5) * 2;
       const dir = height > 0 ? 1 : -1;
 
       base[i * 3] = Math.cos(angle) * spread;
-      base[i * 3 + 1] = dir * Math.abs(height) * 3;
+      base[i * 3 + 1] = dir * Math.abs(height) * 3.5;
       base[i * 3 + 2] = Math.sin(angle) * spread;
 
       pos[i * 3] = base[i * 3];
       pos[i * 3 + 1] = base[i * 3 + 1];
       pos[i * 3 + 2] = base[i * 3 + 2];
 
-      vel[i] = 0.5 + Math.random() * 1.5;
-    }
+      vel[i] = 0.6 + Math.random() * 1.8;
 
-    return { positions: pos, basePositions: base, velocities: vel };
+      // Jet colors: cyan to white
+      const t = Math.random();
+      col[i * 3] = 0.4 + t * 0.6;
+      col[i * 3 + 1] = 0.7 + t * 0.3;
+      col[i * 3 + 2] = 0.9 + t * 0.1;
+    }
+    return { positions: pos, basePositions: base, velocities: vel, colors: col };
   }, [count]);
 
   useFrame((_, delta) => {
     if (!pointsRef.current) return;
-    timeRef.current += delta;
-    const geo = pointsRef.current.geometry;
-    const posAttr = geo.attributes.position as THREE.BufferAttribute;
+    const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
     const arr = posAttr.array as Float32Array;
 
     for (let i = 0; i < count; i++) {
       const dir = basePositions[i * 3 + 1] > 0 ? 1 : -1;
       arr[i * 3 + 1] += dir * velocities[i] * delta;
 
-      // Reset particles that travel too far
-      if (Math.abs(arr[i * 3 + 1]) > 4) {
+      if (Math.abs(arr[i * 3 + 1]) > 5) {
         const angle = Math.random() * Math.PI * 2;
-        const spread = Math.random() * 0.15;
+        const spread = Math.random() * 0.12;
         arr[i * 3] = Math.cos(angle) * spread;
         arr[i * 3 + 1] = dir * 0.1;
         arr[i * 3 + 2] = Math.sin(angle) * spread;
@@ -336,15 +485,16 @@ function ParticleJets({ count = 600 }: { count?: number }) {
   });
 
   return (
-    <points ref={pointsRef} rotation={[-Math.PI * 0.42, 0, 0.15]}>
+    <points ref={pointsRef} rotation={DISK_TILT}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
         size={0.03}
-        color="#88ccff"
+        vertexColors
         transparent
-        opacity={0.4}
+        opacity={0.35}
         depthWrite={false}
         blending={THREE.AdditiveBlending}
         sizeAttenuation
@@ -353,64 +503,86 @@ function ParticleJets({ count = 600 }: { count?: number }) {
   );
 }
 
-// ─── Nebula Dust Ring ───────────────────────────────────────────────
+// ─── Spiral Arms (density waves) ────────────────────────────────────
+// Bright particles concentrated along logarithmic spiral arms
 
-function NebulaDust({ count = 1500 }: { count?: number }) {
+function SpiralArms({ count = 3000 }: { count?: number }) {
   const pointsRef = useRef<THREE.Points>(null);
+  const timeRef = useRef(0);
 
-  const { positions, colors } = useMemo(() => {
-    const pos = new Float32Array(count * 3);
+  const particleData = useMemo(() => {
+    const radii = new Float32Array(count);
+    const baseAngles = new Float32Array(count);
+    const heights = new Float32Array(count);
+    const speeds = new Float32Array(count);
     const col = new Float32Array(count * 3);
+    const pos = new Float32Array(count * 3);
+
+    const numArms = 3;
+    const innerR = 1.0;
+    const outerR = 5.5;
 
     for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const r = 5 + Math.random() * 8;
-      const ySpread = (Math.random() - 0.5) * 1.5;
+      const arm = i % numArms;
+      const armOffset = (arm / numArms) * Math.PI * 2;
 
-      pos[i * 3] = Math.cos(angle) * r;
-      pos[i * 3 + 1] = ySpread;
-      pos[i * 3 + 2] = Math.sin(angle) * r;
+      // Radial position along the arm
+      const r = innerR + Math.pow(Math.random(), 0.5) * (outerR - innerR);
+      radii[i] = r;
 
-      // Nebula colors: purples, blues, hints of green
-      const pallete = Math.random();
-      if (pallete < 0.4) {
-        col[i * 3] = 0.3 + Math.random() * 0.2;
-        col[i * 3 + 1] = 0.1 + Math.random() * 0.2;
-        col[i * 3 + 2] = 0.6 + Math.random() * 0.4;
-      } else if (pallete < 0.7) {
-        col[i * 3] = 0.1;
-        col[i * 3 + 1] = 0.3 + Math.random() * 0.3;
-        col[i * 3 + 2] = 0.5 + Math.random() * 0.3;
-      } else {
-        col[i * 3] = 0.05;
-        col[i * 3 + 1] = 0.5 + Math.random() * 0.3;
-        col[i * 3 + 2] = 0.2 + Math.random() * 0.2;
-      }
+      // Logarithmic spiral: angle = armOffset + log(r) * tightness + scatter
+      const spiralAngle = armOffset + Math.log(r) * 2.5 + gaussRandom() * 0.25;
+      baseAngles[i] = spiralAngle;
+
+      heights[i] = gaussRandom() * (0.02 + (r / outerR) * 0.15);
+      speeds[i] = 1.8 / Math.pow(r, 1.5);
+
+      // Brighter false-color along arms
+      const t = (r - innerR) / (outerR - innerR);
+      const [cr, cg, cb] = falseColor(t);
+      const boost = 1.2 + Math.random() * 0.3;
+      col[i * 3] = Math.min(cr * boost, 1.0);
+      col[i * 3 + 1] = Math.min(cg * boost, 1.0);
+      col[i * 3 + 2] = Math.min(cb * boost, 1.0);
+
+      pos[i * 3] = Math.cos(spiralAngle) * r;
+      pos[i * 3 + 1] = heights[i];
+      pos[i * 3 + 2] = Math.sin(spiralAngle) * r;
     }
-
-    return { positions: pos, colors: col };
+    return { radii, baseAngles, heights, speeds, colors: col, positions: pos };
   }, [count]);
 
   useFrame((_, delta) => {
-    if (pointsRef.current) {
-      pointsRef.current.rotation.y += delta * 0.015;
+    if (!pointsRef.current) return;
+    timeRef.current += delta;
+    const posAttr = pointsRef.current.geometry.attributes.position as THREE.BufferAttribute;
+    const arr = posAttr.array as Float32Array;
+
+    for (let i = 0; i < count; i++) {
+      particleData.baseAngles[i] += particleData.speeds[i] * delta;
+      const a = particleData.baseAngles[i];
+      const r = particleData.radii[i];
+      arr[i * 3] = Math.cos(a) * r;
+      arr[i * 3 + 1] = particleData.heights[i];
+      arr[i * 3 + 2] = Math.sin(a) * r;
     }
+    posAttr.needsUpdate = true;
   });
 
   return (
-    <points ref={pointsRef} rotation={[-Math.PI * 0.42, 0, 0.15]}>
+    <points ref={pointsRef} rotation={DISK_TILT}>
       <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        <bufferAttribute attach="attributes-position" args={[particleData.positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[particleData.colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.06}
+        size={0.05}
         vertexColors
         transparent
-        opacity={0.25}
+        opacity={0.85}
+        sizeAttenuation
         depthWrite={false}
         blending={THREE.AdditiveBlending}
-        sizeAttenuation
       />
     </points>
   );
@@ -421,13 +593,14 @@ function NebulaDust({ count = 1500 }: { count?: number }) {
 function Scene() {
   return (
     <>
-      <StarField count={3500} />
-      <NebulaDust count={1500} />
-      <Disk />
+      <StarField count={4000} />
+      <DiffuseHalo count={2000} />
+      <VolumetricDisk count={10000} />
+      <SpiralArms count={3000} />
+      <InnerGlow count={3000} />
       <CentralGlow />
       <ParticleJets count={500} />
-      {/* Ambient volumetric light */}
-      <ambientLight intensity={0.05} />
+      <ambientLight intensity={0.03} />
     </>
   );
 }
@@ -438,7 +611,7 @@ export default function AccretionDisk() {
   const handleCreated = useCallback((state: { gl: THREE.WebGLRenderer }) => {
     state.gl.setClearColor('#000000', 1);
     state.gl.toneMapping = THREE.ACESFilmicToneMapping;
-    state.gl.toneMappingExposure = 1.2;
+    state.gl.toneMappingExposure = 1.4;
   }, []);
 
   return (
@@ -454,7 +627,7 @@ export default function AccretionDisk() {
       }}
     >
       <Canvas
-        camera={{ position: [0, 2, 8], fov: 60, near: 0.1, far: 100 }}
+        camera={{ position: [0, 3, 9], fov: 55, near: 0.1, far: 100 }}
         dpr={[1, 1.5]}
         gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
         onCreated={handleCreated}
