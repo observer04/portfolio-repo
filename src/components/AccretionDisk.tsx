@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useMemo, useCallback } from 'react';
+import React, { useRef, useMemo, useCallback, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
@@ -62,6 +62,27 @@ function gaussRandom(): number {
   return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
+// ─── Soft Circle Sprite Texture ─────────────────────────────────────
+let _circleTexture: THREE.CanvasTexture | null = null;
+function getCircleTexture(): THREE.CanvasTexture {
+  if (_circleTexture) return _circleTexture;
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.2, 'rgba(255,255,255,0.9)');
+  gradient.addColorStop(0.5, 'rgba(255,255,255,0.3)');
+  gradient.addColorStop(0.8, 'rgba(255,255,255,0.05)');
+  gradient.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  _circleTexture = new THREE.CanvasTexture(canvas);
+  return _circleTexture;
+}
+
 // ─── Star Field ─────────────────────────────────────────────────────
 
 function StarField({ count = 4000 }: { count?: number }) {
@@ -95,7 +116,7 @@ function StarField({ count = 4000 }: { count?: number }) {
 
   useFrame((_, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.004;
+      meshRef.current.rotation.y += delta * 0.0015;
     }
   });
 
@@ -106,7 +127,8 @@ function StarField({ count = 4000 }: { count?: number }) {
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.07}
+        map={getCircleTexture()}
+        size={0.12}
         vertexColors
         transparent
         opacity={0.85}
@@ -153,7 +175,7 @@ function VolumetricDisk({ count = 10000 }: { count?: number }) {
       heights[i] = gaussRandom() * verticalScale;
 
       // Keplerian orbital speed: v ∝ r^(-1.5) — inner orbits much faster
-      speeds[i] = 1.8 / Math.pow(r, 1.5);
+      speeds[i] = 0.6 / Math.pow(r, 1.5);
 
       // False color based on radial position
       const t = (r - innerR) / (outerR - innerR);
@@ -205,7 +227,8 @@ function VolumetricDisk({ count = 10000 }: { count?: number }) {
         <bufferAttribute attach="attributes-size" args={[particleData.sizes, 1]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.06}
+        map={getCircleTexture()}
+        size={0.08}
         vertexColors
         transparent
         opacity={0.7}
@@ -237,7 +260,7 @@ function InnerGlow({ count = 3000 }: { count?: number }) {
       radii[i] = r;
       angles[i] = Math.random() * Math.PI * 2;
       heights[i] = gaussRandom() * 0.03;
-      speeds[i] = 2.5 / Math.pow(r, 1.5);
+      speeds[i] = 0.9 / Math.pow(r, 1.5);
 
       // Extremely hot: white to magenta
       const t = Math.random();
@@ -276,7 +299,8 @@ function InnerGlow({ count = 3000 }: { count?: number }) {
         <bufferAttribute attach="attributes-color" args={[particleData.colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.04}
+        map={getCircleTexture()}
+        size={0.06}
         vertexColors
         transparent
         opacity={0.9}
@@ -317,7 +341,7 @@ const glowFragmentShader = `
     float lensGlow = exp(-dist * 4.0) * 0.5;
     float outerHalo = exp(-pow(dist - 0.25, 2.0) * 12.0) * 0.2;
 
-    float pulse = 1.0 + 0.04 * sin(uTime * 1.8);
+    float pulse = 1.0 + 0.04 * sin(uTime * 0.6);
     float totalGlow = (photonRing + lensGlow + outerHalo) * shadow * pulse;
 
     // False-color: hot magenta core → cyan ring → amber halo
@@ -405,7 +429,7 @@ function DiffuseHalo({ count = 2000 }: { count?: number }) {
 
   useFrame((_, delta) => {
     if (pointsRef.current) {
-      pointsRef.current.rotation.y += delta * 0.012;
+      pointsRef.current.rotation.y += delta * 0.004;
     }
   });
 
@@ -416,7 +440,8 @@ function DiffuseHalo({ count = 2000 }: { count?: number }) {
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.18}
+        map={getCircleTexture()}
+        size={0.25}
         vertexColors
         transparent
         opacity={0.12}
@@ -453,7 +478,7 @@ function ParticleJets({ count = 500 }: { count?: number }) {
       pos[i * 3 + 1] = base[i * 3 + 1];
       pos[i * 3 + 2] = base[i * 3 + 2];
 
-      vel[i] = 0.6 + Math.random() * 1.8;
+      vel[i] = 0.25 + Math.random() * 0.7;
 
       // Jet colors: cyan to white
       const t = Math.random();
@@ -491,7 +516,8 @@ function ParticleJets({ count = 500 }: { count?: number }) {
         <bufferAttribute attach="attributes-color" args={[colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.03}
+        map={getCircleTexture()}
+        size={0.04}
         vertexColors
         transparent
         opacity={0.35}
@@ -535,7 +561,7 @@ function SpiralArms({ count = 3000 }: { count?: number }) {
       baseAngles[i] = spiralAngle;
 
       heights[i] = gaussRandom() * (0.02 + (r / outerR) * 0.15);
-      speeds[i] = 1.8 / Math.pow(r, 1.5);
+      speeds[i] = 0.6 / Math.pow(r, 1.5);
 
       // Brighter false-color along arms
       const t = (r - innerR) / (outerR - innerR);
@@ -576,7 +602,8 @@ function SpiralArms({ count = 3000 }: { count?: number }) {
         <bufferAttribute attach="attributes-color" args={[particleData.colors, 3]} />
       </bufferGeometry>
       <pointsMaterial
-        size={0.05}
+        map={getCircleTexture()}
+        size={0.07}
         vertexColors
         transparent
         opacity={0.85}
@@ -588,18 +615,135 @@ function SpiralArms({ count = 3000 }: { count?: number }) {
   );
 }
 
+// ─── Stellar Clouds (NASA False-Color Nebula) ──────────────────────
+
+function StellarClouds({ count = 1500 }: { count?: number }) {
+  const pointsRef = useRef<THREE.Points>(null);
+
+  const { positions, colors } = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+
+    // Nebula cloud clusters with offset centers
+    const clusters = [
+      { cx: 5, cy: 1, cz: -3, palette: 'red' as const },
+      { cx: -6, cy: -1.5, cz: 2, palette: 'blue' as const },
+      { cx: 3, cy: 2, cz: 5, palette: 'teal' as const },
+      { cx: -4, cy: -0.5, cz: -5, palette: 'purple' as const },
+      { cx: 7, cy: 0.5, cz: 4, palette: 'pink' as const },
+      { cx: -2, cy: 1.5, cz: -7, palette: 'amber' as const },
+    ];
+
+    for (let i = 0; i < count; i++) {
+      const cluster = clusters[i % clusters.length];
+      const scatter = 3.5 + Math.random() * 2;
+      pos[i * 3] = cluster.cx + gaussRandom() * scatter;
+      pos[i * 3 + 1] = cluster.cy + gaussRandom() * scatter * 0.5;
+      pos[i * 3 + 2] = cluster.cz + gaussRandom() * scatter;
+
+      const jitter = 0.8 + Math.random() * 0.4;
+      switch (cluster.palette) {
+        case 'red': // Emission nebula — Hα red/pink
+          col[i * 3] = (0.7 + Math.random() * 0.3) * jitter;
+          col[i * 3 + 1] = (0.1 + Math.random() * 0.15) * jitter;
+          col[i * 3 + 2] = (0.15 + Math.random() * 0.2) * jitter;
+          break;
+        case 'blue': // Reflection nebula
+          col[i * 3] = (0.1 + Math.random() * 0.15) * jitter;
+          col[i * 3 + 1] = (0.2 + Math.random() * 0.2) * jitter;
+          col[i * 3 + 2] = (0.6 + Math.random() * 0.35) * jitter;
+          break;
+        case 'teal': // Planetary nebula — OIII teal/green
+          col[i * 3] = (0.05 + Math.random() * 0.15) * jitter;
+          col[i * 3 + 1] = (0.5 + Math.random() * 0.3) * jitter;
+          col[i * 3 + 2] = (0.4 + Math.random() * 0.3) * jitter;
+          break;
+        case 'purple': // Deep violet
+          col[i * 3] = (0.3 + Math.random() * 0.25) * jitter;
+          col[i * 3 + 1] = (0.05 + Math.random() * 0.1) * jitter;
+          col[i * 3 + 2] = (0.5 + Math.random() * 0.35) * jitter;
+          break;
+        case 'pink': // Hot pink emission
+          col[i * 3] = (0.6 + Math.random() * 0.3) * jitter;
+          col[i * 3 + 1] = (0.15 + Math.random() * 0.2) * jitter;
+          col[i * 3 + 2] = (0.4 + Math.random() * 0.3) * jitter;
+          break;
+        case 'amber': // Warm dust lanes
+          col[i * 3] = (0.6 + Math.random() * 0.3) * jitter;
+          col[i * 3 + 1] = (0.35 + Math.random() * 0.15) * jitter;
+          col[i * 3 + 2] = (0.08 + Math.random() * 0.12) * jitter;
+          break;
+      }
+    }
+    return { positions: pos, colors: col };
+  }, [count]);
+
+  useFrame((_, delta) => {
+    if (pointsRef.current) {
+      pointsRef.current.rotation.y += delta * 0.002;
+    }
+  });
+
+  return (
+    <points ref={pointsRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+      </bufferGeometry>
+      <pointsMaterial
+        map={getCircleTexture()}
+        size={1.5}
+        vertexColors
+        transparent
+        opacity={0.045}
+        sizeAttenuation
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+// ─── Camera Rig (Mouse Parallax) ────────────────────────────────────
+
+function CameraRig() {
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const basePosition = useMemo(() => new THREE.Vector3(0, 3, 9), []);
+
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseRef.current.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    };
+    window.addEventListener('pointermove', handlePointerMove);
+    return () => window.removeEventListener('pointermove', handlePointerMove);
+  }, []);
+
+  useFrame(({ camera }) => {
+    const targetX = basePosition.x + mouseRef.current.x * 1.2;
+    const targetY = basePosition.y + mouseRef.current.y * 0.6;
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, targetX, 0.03);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, targetY, 0.03);
+    camera.lookAt(0, 0, 0);
+  });
+
+  return null;
+}
+
 // ─── Scene Composition ──────────────────────────────────────────────
 
 function Scene() {
   return (
     <>
       <StarField count={4000} />
+      <StellarClouds count={1500} />
       <DiffuseHalo count={2000} />
       <VolumetricDisk count={10000} />
       <SpiralArms count={3000} />
       <InnerGlow count={3000} />
       <CentralGlow />
       <ParticleJets count={500} />
+      <CameraRig />
       <ambientLight intensity={0.03} />
     </>
   );
