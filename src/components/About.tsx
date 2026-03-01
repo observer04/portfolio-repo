@@ -17,11 +17,10 @@ const About = () => {
   };
 
   const itemVariants = {
-    hidden: { opacity: 0.3, y: 50, filter: 'brightness(0.4)' },
+    hidden: { opacity: 0, y: 30 },
     visible: {
       opacity: 1,
       y: 0,
-      filter: 'brightness(1)',
       transition: {
         duration: 0.6,
       },
@@ -29,12 +28,11 @@ const About = () => {
   };
 
   return (
-    <section id="whoami" className="py-12 sm:py-20 bg-black/50">
+    <section id="whoami" className="py-12 sm:py-20">
       <div className="container mx-auto px-4">
         <motion.div
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
+          animate="visible"
           variants={containerVariants}
           className="max-w-6xl mx-auto"
         >

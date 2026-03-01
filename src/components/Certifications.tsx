@@ -7,12 +7,11 @@ import Image from 'next/image';
 
 const Certifications = () => {
   return (
-    <section id="certifications" className="py-12 sm:py-20 bg-black/50">
+    <section id="certifications" className="py-12 sm:py-20">
       <div className="container mx-auto px-4">
         <motion.div
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.2 }}
+          animate="visible"
           className="max-w-6xl mx-auto"
         >
           <motion.div className="text-center mb-16">
