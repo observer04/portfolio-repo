@@ -29,7 +29,7 @@ const AIAgents = () => {
   };
 
   return (
-    <section id="ai-agents" className="py-20 bg-black/50">
+    <section id="ai-agents" className="py-12 sm:py-20 bg-black/50">
       <div className="container mx-auto px-4">
         <motion.div
           initial="hidden"

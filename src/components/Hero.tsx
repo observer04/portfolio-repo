@@ -26,13 +26,7 @@ const Hero = () => {
   }, [fullText]);
 
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center space-bg relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 space-bg"></div>
-      
-      {/* Matrix Rain Effect */}
-      <div className="matrix-rain"></div>
-
+    <section id="home" className="min-h-[80vh] md:min-h-[calc(100vh-6rem)] flex items-center justify-center relative overflow-hidden">
       {/* Hero Content */}
       <div className="relative z-10 text-center px-4">
         <motion.div
@@ -56,7 +50,7 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="text-6xl md:text-8xl font-bold text-green-500 mb-6"
+            className="text-4xl sm:text-6xl md:text-8xl font-bold text-green-500 mb-6"
             data-text={personalInfo.name}
           >
             <span className="glitch" data-text={personalInfo.name}>
@@ -69,7 +63,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-2xl md:text-3xl text-orange-400 font-mono mb-8"
+            className="text-lg sm:text-2xl md:text-3xl text-orange-400 font-mono mb-8"
           >
             {text}
             <span className={`cursor ${isTyping ? 'animate-pulse' : ''}`}>|</span>
@@ -80,7 +74,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            className="text-xl text-gray-300 mb-12 max-w-2xl mx-auto leading-relaxed"
+            className="text-base sm:text-xl text-gray-300 mb-8 sm:mb-12 max-w-2xl mx-auto leading-relaxed"
           >
             {personalInfo.summary}
           </motion.p>
@@ -90,14 +84,14 @@ const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1 }}
-            className="flex justify-center space-x-8 mb-12"
+            className="flex justify-center space-x-6 sm:space-x-8 mb-8 sm:mb-12"
           >
             <motion.div
               whileHover={{ scale: 1.1, rotate: 360 }}
               transition={{ duration: 0.3 }}
               className="flex flex-col items-center"
             >
-              <Code className="w-12 h-12 text-green-500 mb-2" />
+              <Code className="w-8 h-8 sm:w-12 sm:h-12 text-green-500 mb-2" />
               <span className="text-sm text-gray-400 font-mono">Development</span>
             </motion.div>
             <motion.div
@@ -105,7 +99,7 @@ const Hero = () => {
               transition={{ duration: 0.3 }}
               className="flex flex-col items-center"
             >
-              <Zap className="w-12 h-12 text-orange-400 mb-2" />
+              <Zap className="w-8 h-8 sm:w-12 sm:h-12 text-orange-400 mb-2" />
               <span className="text-sm text-gray-400 font-mono">AI</span>
             </motion.div>
             <motion.div
@@ -113,7 +107,7 @@ const Hero = () => {
               transition={{ duration: 0.3 }}
               className="flex flex-col items-center"
             >
-              <Shield className="w-12 h-12 text-green-500 mb-2" />
+              <Shield className="w-8 h-8 sm:w-12 sm:h-12 text-green-500 mb-2" />
               <span className="text-sm text-gray-400 font-mono">Security</span>
             </motion.div>
           </motion.div>

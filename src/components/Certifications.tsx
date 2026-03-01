@@ -7,7 +7,7 @@ import Image from 'next/image';
 
 const Certifications = () => {
   return (
-    <section id="certifications" className="py-20 bg-black/50">
+    <section id="certifications" className="py-12 sm:py-20 bg-black/50">
       <div className="container mx-auto px-4">
         <motion.div
           initial="hidden"

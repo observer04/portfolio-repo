@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import About from '@/components/About';
 import AIAgents from '@/components/AIAgents';
 import Contact from '@/components/Contact';
@@ -11,8 +11,11 @@ import Projects from '@/components/Projects';
 import Skills from '@/components/Skills';
 import TerminalHeader from '@/components/TerminalHeader';
 
+const AccretionDisk = lazy(() => import('@/components/AccretionDisk'));
+
 export default function Home() {
   const [activeSection, setActiveSection] = useState('hero');
+  const terminalContentRef = useRef<HTMLDivElement>(null);
   const sectionRefs = {
     hero: useRef<HTMLDivElement>(null),
     'ai-agents': useRef<HTMLDivElement>(null),
@@ -24,6 +27,9 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const scrollContainer = terminalContentRef.current;
+    if (!scrollContainer) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -32,7 +38,7 @@ export default function Home() {
           }
         });
       },
-      { rootMargin: '-30% 0px -70% 0px' }
+      { root: scrollContainer, rootMargin: '-30% 0px -70% 0px' }
     );
 
     Object.values(sectionRefs).forEach((ref) => {
@@ -52,28 +58,18 @@ export default function Home() {
 
   return (
     <>
-      {/* Cosmic Stellar Background */}
-      <div className="cosmic-background">
-        <div className="stars">
-          {/* Regular stars */}
-          {Array.from({ length: 20 }, (_, i) => (
-            <div key={i} className="star"></div>
-          ))}
-          {/* Shooting stars */}
-          {Array.from({ length: 3 }, (_, i) => (
-            <div key={i + 20} className="shooting-star"></div>
-          ))}
-          {/* Nebula clouds */}
-          {Array.from({ length: 2 }, (_, i) => (
-            <div key={i + 23} className="nebula"></div>
-          ))}
-        </div>
-      </div>
+      {/* Three.js Accretion Disk Background */}
+      <Suspense fallback={<div className="fixed inset-0 bg-black z-[-1]" />}>
+        <AccretionDisk />
+      </Suspense>
 
-      <main className="flex h-screen flex-col items-center justify-center p-8 bg-transparent text-white relative z-10">
-        <div className="terminal-container w-full h-full max-w-7xl flex flex-col">
+      <main className="flex h-screen flex-col items-center justify-center p-2 sm:p-4 md:p-8 bg-transparent text-white relative z-10">
+        <div className="terminal-container w-full h-full max-w-7xl flex flex-col overflow-hidden">
           <TerminalHeader activeSection={activeSection} />
-          <div className="terminal-content flex-grow overflow-y-auto">
+          <div
+            ref={terminalContentRef}
+            className="terminal-content flex-grow overflow-y-auto overflow-x-hidden"
+          >
             <div id="hero" ref={sectionRefs.hero}>
               <Hero />
             </div>

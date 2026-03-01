@@ -109,30 +109,87 @@ export const education: Education[] = [
 
 export const projects: Project[] = [
   {
-    id: 'proj-1',
+    id: 'proj-teatime',
+    name: 'TeaTime',
+    description:
+      'A full-stack real-time chat application with direct messaging, group conversations, file sharing via Cloudflare R2, and WebRTC-based video/audio calls. Features JWT auth with token rotation, typing indicators, message receipts, and a self-hosted Coturn TURN server. Deployed on Azure with Caddy reverse proxy.',
+    technologies: ['Go', 'React', 'WebSocket', 'WebRTC', 'PostgreSQL', 'Cloudflare R2', 'Docker'],
+    githubUrl: 'https://github.com/observer04/teatime',
+    liveUrl: 'https://teatime.ommprakash.cloud',
+    featured: true,
+  },
+  {
+    id: 'proj-disgo',
+    name: 'Disgo — Redis Clone',
+    description:
+      'A Redis-compatible server built from scratch in Go. Supports RESP protocol, string/list/stream/sorted-set/geo commands, pub/sub, transactions (MULTI/EXEC), ACL/auth, RDB persistence on startup, and a replication subset (PSYNC, REPLCONF, WAIT).',
+    technologies: ['Go', 'TCP', 'RESP Protocol', 'Redis'],
+    githubUrl: 'https://github.com/observer04/disgo',
+    featured: true,
+  },
+  {
+    id: 'proj-medx',
+    name: 'MedX v1',
+    description:
+      'A secure, mobile-first PDF delivery platform with encrypted storage, screenshot prevention, device-locked access, and a manual UPI payment workflow. Includes an admin dashboard for product/order management. Built with React Native (Expo), Firebase Auth, Supabase, and Cloudflare R2.',
+    technologies: ['React Native', 'Expo', 'Firebase', 'Supabase', 'Cloudflare R2', 'TypeScript'],
+    githubUrl: 'https://github.com/observer04/medx_v1',
+    featured: true,
+  },
+  {
+    id: 'proj-cs50ai',
+    name: 'CS50 AI — 13 Projects',
+    description:
+      'Complete suite of 13 AI projects from Harvard\'s CS50AI: DFS/BFS search, Minimax game AI, Bayesian networks, constraint satisfaction, Q-learning, k-NN classification, CNN traffic sign recognition, NLP parsing, and BERT self-attention visualization.',
+    technologies: ['Python', 'TensorFlow', 'NLTK', 'HuggingFace Transformers', 'OpenCV'],
+    githubUrl: 'https://github.com/observer04/cs50ai',
+    featured: true,
+  },
+  {
+    id: 'proj-glacierhack',
+    name: 'GlacierHack — Satellite Segmentation',
+    description:
+      'Glacier semantic segmentation from multispectral satellite imagery for the IEEE GRSS GlacierHack 2025 challenge. U-Net with ResNet34 encoder, channel-spatial attention, focal/dice/MCC/boundary loss, and test-time augmentation. Classifies glacier, debris, and glacial lake regions.',
+    technologies: ['Python', 'PyTorch', 'U-Net', 'Albumentations', 'Rasterio'],
+    githubUrl: 'https://github.com/observer04/gchack2_v2',
+    featured: true,
+  },
+  {
+    id: 'proj-http-server',
+    name: 'HTTP Server',
+    description:
+      'An asynchronous HTTP/1.1 server built in Python using asyncio. Supports routing, file serving/uploading, gzip and deflate content encoding, persistent keep-alive connections, and a clean command-line interface.',
+    technologies: ['Python', 'asyncio', 'HTTP/1.1'],
+    githubUrl: 'https://github.com/observer04/http-server-python',
+    featured: true,
+  },
+  {
+    id: 'proj-dns-server',
+    name: 'DNS Server',
+    description:
+      'A full DNS server in Go supporting standalone mode and query forwarding to upstream resolvers. Handles DNS message parsing/encoding, name compression (pointer-based), multiple question splitting/merging, and proper OPCODE/RCODE handling.',
+    technologies: ['Go', 'UDP', 'DNS Protocol'],
+    githubUrl: 'https://github.com/observer04/dns-server-go',
+    featured: false,
+  },
+  {
+    id: 'proj-shell',
     name: 'Python Custom Shell',
     description:
-      "A custom POSIX-compliant shell built in Python. It's a lightweight, educational implementation that explores the core concepts behind how a command-line interface works, including command parsing, process management, I/O redirection, and pipelines.",
+      'A custom POSIX-compliant shell built in Python. A lightweight, educational implementation exploring command parsing, process management, I/O redirection, and pipelines.',
     technologies: ['Python'],
     githubUrl: 'https://github.com/observer04/shell-python',
-    featured: true,
+    featured: false,
   },
   {
-    id: 'proj-2',
+    id: 'proj-analytics',
     name: 'Analytics API',
     description:
-      'An API development project using FastAPI and TimescaleDB for the analysis of time-series data. It utilizes SQLModel on PostgreSQL.',
+      'An API for time-series data analysis using FastAPI and TimescaleDB. Utilizes SQLModel on PostgreSQL for type-safe ORM operations.',
     technologies: ['FastAPI', 'TimescaleDB', 'PostgreSQL', 'SQLModel', 'Python'],
     githubUrl: 'https://github.com/observer04/analyticsApi',
-    featured: true,
-  },
-  {
-    id: 'proj-3',
-    name: 'Coming Soon',
-    description: 'An exciting new project is currently in development. Stay tuned for updates on this innovative project that will showcase cutting-edge technology and creative solutions.',
-    technologies: ['AI/ML', 'Python', 'Cloud Computing'],
     featured: false,
-  }
+  },
 ];
 
 export const aiAgents: AIAgent[] = [
@@ -161,19 +218,6 @@ export const aiAgents: AIAgent[] = [
       "Technical topic discussions",
       "Professional advice generation"
     ]
-  },
-  {
-    id: "3",
-    name: "Coming Soon",
-    description: "An exciting new AI agent is currently in development. ",
-    url: "#",
-    technologies: ["AI/ML", "Python", "Cloud Computing"],
-    features: [
-      "Advanced AI capabilities",
-      "Real-time processing",
-      "Scalable architecture",
-      "User-friendly interface"
-    ]
   }
 ];
 
@@ -200,7 +244,7 @@ export const skills = [
   },
   {
     category: 'Programming Languages',
-    items: ['C', 'C++', 'Python', 'JavaScript'],
+    items: ['C', 'C++', 'Python', 'Go', 'JavaScript', 'TypeScript'],
   },
   {
     category: 'Frontend',
@@ -208,7 +252,7 @@ export const skills = [
   },
   {
     category: 'Backend',
-    items: ['FastAPI', 'PostgreSQL', 'Redis'],
+    items: ['FastAPI', 'PostgreSQL', 'Redis', 'WebSockets', 'Docker'],
   },
 ];
 

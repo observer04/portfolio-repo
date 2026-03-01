@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Large video files (use R2 for production, keep only 720p fallback)
+public/videos/milkyway-1080.mp4
